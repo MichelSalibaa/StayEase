@@ -1,0 +1,102 @@
+/* --- Login Page Styling --- */
+
+body {
+    background: #f5f7fa;
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+    padding-top: 40px;
+}
+
+.login-box {
+    background: white;
+    width: 380px;
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.login-box h1 {
+    margin-bottom: 5px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    text-align: left;
+    margin-top: 15px;
+    font-weight: 600;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #1e73be;
+    box-shadow: 0 0 4px rgba(30, 115, 190, 0.4);
+}
+
+.login-btn {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+    background: #1e73be;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.login-btn:hover {
+    background: #155a95;
+}
+
+.signup-text {
+    margin-top: 18px;
+    font-size: 14px;
+    color: #555;
+}
+
+.signup-text a {
+    color: #1e73be;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.signup-text a:hover {
+    text-decoration: underline;
+}
+
+.error-msg {
+    padding: 10px;
+    margin-bottom: 15px;
+    background: #ffdddd;
+    color: #c30000;
+    border-left: 4px solid #c30000;
+    border-radius: 8px;
+    font-size: 14px;
+}

@@ -1,0 +1,117 @@
+<?php
+require "includes/auth_check.php"; // handles session + login check
+require "includes/db_connect.php";
+
+$user_id = $_SESSION["user_id"];
+
+/* -------------------------
+   FETCH STATS
+-------------------------- */
+
+// Total listings
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM properties WHERE owner_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$total_listings = $stmt->get_result()->fetch_assoc()["total"];
+
+// Total favorites
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM favorites WHERE user_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$total_favorites = $stmt->get_result()->fetch_assoc()["total"];
+
+// Total bookings (if you have a bookings table)
+$booking_count = 0; // temporary (we can implement real bookings later)
+
+
+/* -------------------------
+   FETCH USER LISTINGS
+-------------------------- */
+$stmt = $conn->prepare("SELECT * FROM properties WHERE owner_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$listings = $stmt->get_result();
+
+/* -------------------------
+   PAGE HEADER
+-------------------------- */
+$page_title = "Dashboard";
+require "includes/header.php";
+?>
+
+<div class="dashboard-container">
+
+    <h1 class="dashboard-title">Dashboard</h1>
+
+    <!-- STAT BOXES -->
+    <div class="dashboard-stats">
+        <div class="stat-box">
+            <h3>Your Listings</h3>
+            <p><?php echo $total_listings; ?></p>
+        </div>
+
+        <div class="stat-box">
+            <h3>Your Favorites</h3>
+            <p><?php echo $total_favorites; ?></p>
+        </div>
+
+        <div class="stat-box">
+            <h3>Your Bookings</h3>
+            <p><?php echo $booking_count; ?></p>
+        </div>
+    </div>
+
+    <!-- ADD PROPERTY BUTTON -->
+    <a class="add-listing-btn" href="add_property.php">+ Add New Listing</a>
+
+    <!-- LISTINGS TABLE -->
+    <div class="dashboard-section">
+        <h2>Your Properties</h2>
+
+        <?php if ($listings->num_rows > 0): ?>
+        <table class="dashboard-table">
+
+            <tr>
+                <th>Image</th>
+                <th>Title</th>
+                <th>City</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+
+            <?php while ($row = $listings->fetch_assoc()): ?>
+            <tr>
+                <td>
+                    <img src="<?php echo $row['main_image']; ?>" alt="">
+                </td>
+
+                <td><?php echo $row['title']; ?></td>
+
+                <td><?php echo $row['city']; ?></td>
+
+                <td>$<?php echo number_format($row['price'], 2); ?></td>
+
+                <td>
+                    <a class="table-btn view-btn" href="property.php?id=<?php echo $row['id']; ?>">View</a>
+                    <a class="table-btn edit-btn" href="edit_property.php?id=<?php echo $row['id']; ?>">Edit</a>
+                    <a class="table-btn delete-btn" href="delete_property.php?id=<?php echo $row['id']; ?>"
+                        onclick="return confirm('Are you sure you want to delete this property?');">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+
+        </table>
+
+        <?php else: ?>
+
+        <p>You have no properties yet.</p>
+
+        <?php endif; ?>
+
+    </div>
+
+</div>
+
+<?php require "includes/footer.php"; ?>
