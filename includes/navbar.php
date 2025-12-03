@@ -12,7 +12,6 @@ $is_logged_in = isset($_SESSION["user_id"]);
         <?php if ($is_logged_in): ?>
             <a href="dashboard.php" class="nav-link">Dashboard</a>
             <a href="favorites.php" class="nav-link">Favorites</a>
-            <a href="my_bookings.php" class="nav-link">Bookings</a>
             <a href="profile.php" class="nav-link">Profile</a>
             <a href="logout.php" class="nav-btn logout-btn">Logout</a>
         <?php else: ?>

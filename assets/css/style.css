@@ -925,3 +925,193 @@ main {
     text-decoration: underline;
 }
 
+/* =========================================
+   ADD PROPERTY PAGE
+========================================= */
+
+.add-property-container {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px 80px;
+    background: #f7f9fc;
+}
+
+.add-property-box {
+    width: 700px;
+    max-width: 100%;
+    background: #ffffff;
+    padding: 35px 32px 40px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    font-family: "Inter", sans-serif;
+}
+
+.add-property-box h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.add-property-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+/* form layout */
+.add-property-form label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    margin-top: 14px;
+    color: #111827;
+}
+
+.add-property-form input[type="text"],
+.add-property-form input[type="number"],
+.add-property-form select,
+.add-property-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #f9fafb;
+}
+
+.add-property-form input:focus,
+.add-property-form select:focus,
+.add-property-form textarea:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    background: #ffffff;
+}
+
+.add-property-form textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+/* two column rows (price / guests, city / type) */
+.form-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.form-row .field {
+    flex: 1;
+}
+
+/* error box */
+.form-error-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.form-error-box p {
+    margin: 0;
+}
+
+/* submit button */
+.save-property-btn {
+    margin-top: 22px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #1a73e8;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.08s ease;
+}
+
+.save-property-btn:hover {
+    background: #1555b5;
+    transform: translateY(-1px);
+}
+
+.save-property-btn:active {
+    transform: translateY(0);
+}
+
+/* responsive */
+@media (max-width: 640px) {
+    .add-property-box {
+        padding: 28px 22px 32px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+}
+
+/* ---------- Custom File Upload Styling ---------- */
+
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0 25px;
+}
+
+.custom-file-upload {
+    background: #1e73be;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 15px;
+    display: inline-block;
+    transition: 0.2s ease;
+}
+
+.custom-file-upload:hover {
+    background: #155a91;
+}
+
+.custom-file-upload input[type="file"] {
+    display: none; /* hide native input */
+}
+
+#fileNameDisplay {
+    font-size: 14px;
+    color: #555;
+    font-style: italic;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* cancel button in booking page */
+.cancel-booking-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: #ff3b30;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    text-align: center;
+    width: 100%;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.cancel-booking-btn:hover {
+    background: #d72a20;
+    transform: translateY(-1px);
+}

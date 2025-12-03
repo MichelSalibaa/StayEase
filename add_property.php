@@ -5,48 +5,204 @@ require "includes/db_connect.php";
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $owner_id = $_SESSION["user_id"];
-    $title = $_POST["title"];
-    $description = $_POST["description"];
-    $price = $_POST["price"];
-    $city = $_POST["city"];
-    $address = $_POST["address"];
-    $type = $_POST["type"];
-    $max_guests = $_POST["max_guests"];
-    $image_url = $_POST["image_url"]; // later you can add upload support
+    $owner_id    = $_SESSION["user_id"];
+    $title       = trim($_POST["title"]);
+    $description = trim($_POST["description"]);
+    $price       = trim($_POST["price"]);
+    $city        = trim($_POST["city"]);
+    $address     = trim($_POST["address"]);
+    $type        = trim($_POST["type"]);
+    $max_guests  = trim($_POST["max_guests"]);
 
-    $stmt = $conn->prepare("INSERT INTO properties 
-    (owner_id, title, description, price, city, address, type, max_guests, main_image)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    // -----------------------------
+    // BASIC VALIDATION
+    // -----------------------------
+    if ($title === "" || $price === "" || $city === "" || $type === "") {
+        $errors[] = "Please fill in all required fields marked with *.";
+    }
 
-    $stmt->bind_param("issdsssiss", $owner_id, $title, $description, $price, $city, $address, $type, $max_guests, $image_url);
-    $stmt->execute();
+    if ($price !== "" && !is_numeric($price)) {
+        $errors[] = "Price must be a number.";
+    }
 
-    header("Location: dashboard.php");
-    exit();
+    if ($max_guests !== "" && !ctype_digit($max_guests)) {
+        $errors[] = "Max guests must be an integer.";
+    }
+
+    // Image upload validation
+    if (!isset($_FILES["main_image"]) || $_FILES["main_image"]["error"] === UPLOAD_ERR_NO_FILE) {
+        $errors[] = "Please upload a property image.";
+    } else {
+        $file = $_FILES["main_image"];
+
+        if ($file["error"] !== UPLOAD_ERR_OK) {
+            $errors[] = "There was an error uploading the image.";
+        } else {
+            $allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+            if (!in_array($file["type"], $allowedTypes)) {
+                $errors[] = "Only JPG, PNG, GIF or WEBP images are allowed.";
+            }
+
+            // Max 2MB
+            if ($file["size"] > 2 * 1024 * 1024) {
+                $errors[] = "Image must be smaller than 2MB.";
+            }
+        }
+    }
+
+    // -----------------------------
+    // IF EVERYTHING IS OK → SAVE
+    // -----------------------------
+    if (empty($errors)) {
+
+        // 1) Move uploaded image
+        $uploadDir = "assets/uploads/";
+
+        if (!is_dir($uploadDir)) {
+            // create directory if it doesn't exist
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $ext       = pathinfo($file["name"], PATHINFO_EXTENSION);
+        $newName   = "property_" . time() . "_" . mt_rand(1000, 9999) . "." . $ext;
+        $destPath  = $uploadDir . $newName;  // e.g. assets/uploads/property_1234.jpg
+
+        if (!move_uploaded_file($file["tmp_name"], $destPath)) {
+            $errors[] = "Could not save uploaded image. Please try again.";
+        } else {
+            // 2) Insert into DB with status = pending
+            $stmt = $conn->prepare("INSERT INTO properties 
+                (owner_id, title, description, price, city, address, type, max_guests, main_image, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+
+            $price_val      = (float)$price;
+            $max_guests_val = ($max_guests === "") ? null : (int)$max_guests;
+            $status         = "pending";
+
+            $stmt->bind_param(
+                "issdsssiss",
+                $owner_id,
+                $title,
+                $description,
+                $price_val,
+                $city,
+                $address,
+                $type,
+                $max_guests_val,
+                $destPath,
+                $status
+            );
+
+            $stmt->execute();
+
+            // Popup + redirect
+            echo "<script>
+                alert('Thank you! The StayEase community is reviewing your property.');
+                window.location.href = 'dashboard.php';
+            </script>";
+            exit();
+        }
+    }
 }
+
+$page_title = "Add Property";
+require "includes/header.php";
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Property</title>
-</head>
-<body>
+<div class="add-property-container">
+    <div class="add-property-box">
+        <h1>Add New Property</h1>
+        <p class="add-property-subtitle">
+            Create a new listing so guests can discover your place.
+        </p>
 
-<h2>Add New Property</h2>
+        <?php if (!empty($errors)): ?>
+            <div class="form-error-box">
+                <?php foreach ($errors as $err): ?>
+                    <p><?php echo htmlspecialchars($err); ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-<form method="POST">
-    Title: <input type="text" name="title"><br><br>
-    Description:<br> <textarea name="description"></textarea><br><br>
-    Price: <input type="number" name="price"><br><br>
-    City: <input type="text" name="city"><br><br>
-    Address: <input type="text" name="address"><br><br>
-    Type: <input type="text" name="type"><br><br>
-    Max Guests: <input type="number" name="max_guests"><br><br>
-    Image URL: <input type="text" name="image_url"><br><br>
-    <button type="submit">Save Property</button>
-</form>
+        <!-- IMPORTANT: enctype for file upload -->
+        <form method="POST" class="add-property-form" enctype="multipart/form-data">
+            <!-- Title -->
+            <label>Title *</label>
+            <input type="text" name="title"
+                   value="<?php echo htmlspecialchars($_POST['title'] ?? ''); ?>"
+                   required>
 
-</body>
-</html>
+            <!-- Description -->
+            <label>Description</label>
+            <textarea name="description" rows="4"
+                      placeholder="Describe your property, neighborhood, and any special details."><?php 
+                echo htmlspecialchars($_POST['description'] ?? ''); 
+            ?></textarea>
+
+            <div class="form-row">
+                <div class="field">
+                    <label>Price per night (USD) *</label>
+                    <input type="number" step="0.01" min="0" name="price"
+                           value="<?php echo htmlspecialchars($_POST['price'] ?? ''); ?>"
+                           required>
+                </div>
+                <div class="field">
+                    <label>Max Guests</label>
+                    <input type="number" min="1" name="max_guests"
+                           value="<?php echo htmlspecialchars($_POST['max_guests'] ?? ''); ?>">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="field">
+                    <label>City *</label>
+                    <input type="text" name="city"
+                           value="<?php echo htmlspecialchars($_POST['city'] ?? ''); ?>"
+                           required>
+                </div>
+                <div class="field">
+                    <label>Type *</label>
+                    <select name="type" required>
+                        <?php
+                        $currentType = $_POST['type'] ?? '';
+                        $types = [
+                            ''            => 'Select type',
+                            'apartment'   => 'Apartment',
+                            'guesthouse'  => 'Guesthouse',
+                            'camping'     => 'Camping',
+                            'house'       => 'House',
+                        ];
+                        foreach ($types as $value => $label) {
+                            $selected = ($currentType === $value) ? 'selected' : '';
+                            echo "<option value=\"{$value}\" {$selected}>{$label}</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <label>Address</label>
+            <input type="text" name="address"
+                   value="<?php echo htmlspecialchars($_POST['address'] ?? ''); ?>">
+
+            <!-- Image upload -->
+           <label>Property Image *</label>
+
+<div class="file-upload-wrapper">
+    <label class="custom-file-upload">
+        <input type="file" name="main_image" id="mainImageInput" accept="image/*" required>
+        Upload Image
+    </label>
+    <span id="fileNameDisplay">No file chosen</span>
+</div>
+
+            <button type="submit" class="save-property-btn">
+                Save Property
+            </button>
+        </form>
+    </div>
+</div>
+
+<?php require "includes/footer.php"; ?>

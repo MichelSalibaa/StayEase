@@ -37,7 +37,7 @@ $tv            = isset($_GET['tv']) ? 1 : 0;
    BUILD DYNAMIC WHERE CLAUSE
 ----------------------------*/
 
-$where = "WHERE 1=1";
+$where = "WHERE status = 'approved'";
 
 if ($type !== 'all') {
     $where .= " AND type = '" . $conn->real_escape_string($type) . "'";

@@ -8,6 +8,9 @@ if (!isset($_GET['id'])) {
 
 $property_id = intval($_GET['id']);
 
+// -----------------------------
+// FETCH PROPERTY
+// -----------------------------
 $stmt = $conn->prepare("
     SELECT p.*, u.name AS owner_name 
     FROM properties p
@@ -22,9 +25,54 @@ if (!$property) {
     die("Property not found.");
 }
 
+// -----------------------------
+// FETCH EXISTING BOOKINGS
+// -----------------------------
+$bookStmt = $conn->prepare("
+    SELECT start_date, end_date
+    FROM bookings
+    WHERE property_id = ?
+    AND status IN ('pending', 'confirmed')
+");
+$bookStmt->bind_param("i", $property_id);
+$bookStmt->execute();
+$bookingsResult = $bookStmt->get_result();
+
+$booked_ranges = [];
+while ($b = $bookingsResult->fetch_assoc()) {
+    $booked_ranges[] = [
+        'start' => $b['start_date'],
+        'end'   => $b['end_date']
+    ];
+}
+
+// -----------------------------
+// READ BOOKING ERROR (FROM PHP)
+// -----------------------------
+$booking_error = "";
+$open_booking  = false;
+
+if (isset($_SESSION['booking_error'])) {
+    $booking_error = $_SESSION['booking_error'];
+    unset($_SESSION['booking_error']);
+}
+
+if (isset($_GET['open_booking']) && $_GET['open_booking'] == '1') {
+    $open_booking = true;
+}
+
+// -----------------------------
+// PAGE HEADER
+// -----------------------------
 $page_title = $property['title'];
 require "includes/header.php";
 ?>
+
+<!-- Expose booked ranges & error to JS -->
+<script>
+    // make them available to app.js
+    window.bookedRanges = <?php echo json_encode($booked_ranges); ?>;
+</script>
 
 <!-- HERO IMAGE -->
 <div class="property-hero">
@@ -72,15 +120,15 @@ require "includes/header.php";
     <div class="section">
         <h2>Amenities</h2>
         <ul class="amenities-list">
-            <?php if ($property['has_wifi']) echo "<li>📶 Wi-Fi</li>"; ?>
-            <?php if ($property['has_parking']) echo "<li>🅿 Parking</li>"; ?>
-            <?php if ($property['has_ac']) echo "<li>❄ Air Conditioning</li>"; ?>
-            <?php if ($property['has_pool']) echo "<li>🏊 Pool</li>"; ?>
-            <?php if ($property['has_kitchen']) echo "<li>🍽 Kitchen</li>"; ?>
-            <?php if ($property['has_tv']) echo "<li>📺 TV</li>"; ?>
-            <?php if ($property['has_heating']) echo "<li>🔥 Heating</li>"; ?>
+            <?php if ($property['has_wifi'])         echo "<li>📶 Wi-Fi</li>"; ?>
+            <?php if ($property['has_parking'])      echo "<li>🅿 Parking</li>"; ?>
+            <?php if ($property['has_ac'])           echo "<li>❄ Air Conditioning</li>"; ?>
+            <?php if ($property['has_pool'])         echo "<li>🏊 Pool</li>"; ?>
+            <?php if ($property['has_kitchen'])      echo "<li>🍽 Kitchen</li>"; ?>
+            <?php if ($property['has_tv'])           echo "<li>📺 TV</li>"; ?>
+            <?php if ($property['has_heating'])      echo "<li>🔥 Heating</li>"; ?>
             <?php if ($property['has_pet_friendly']) echo "<li>🐶 Pet Friendly</li>"; ?>
-            <?php if ($property['has_fireplace']) echo "<li>🪵 Fireplace</li>"; ?>
+            <?php if ($property['has_fireplace'])    echo "<li>🪵 Fireplace</li>"; ?>
         </ul>
     </div>
 
@@ -102,14 +150,20 @@ require "includes/header.php";
     <div class="booking-content">
         <h2>Book This Property</h2>
 
+        <!-- ERROR MESSAGE (shown in red) -->
+        <div id="bookingError"
+             style="color: red; margin-bottom: 10px; <?php echo empty($booking_error) ? 'display:none;' : 'display:block;'; ?>">
+            <?php echo htmlspecialchars($booking_error); ?>
+        </div>
+
         <form action="book_property.php" method="POST">
             <input type="hidden" name="property_id" value="<?php echo $property_id; ?>">
 
             <label>Check-in Date</label>
-            <input type="date" name="check_in" required>
+            <input type="date" id="checkIn" name="check_in" required>
 
             <label>Check-out Date</label>
-            <input type="date" name="check_out" required>
+            <input type="date" id="checkOut" name="check_out" required>
 
             <button type="submit" class="confirm-book-btn">
                 Confirm Booking
@@ -121,5 +175,16 @@ require "includes/header.php";
         </form>
     </div>
 </div>
+
+<?php if ($open_booking): ?>
+<script>
+    // if coming back from book_property.php with an error,
+    // open the modal automatically
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("bookingModal");
+        if (modal) modal.style.display = "flex";
+    });
+</script>
+<?php endif; ?>
 
 <?php require "includes/footer.php"; ?>

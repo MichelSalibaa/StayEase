@@ -1,11 +1,9 @@
 <?php
+// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-?>
-
-
-<?php
+// Default page title if not set
 if (!isset($page_title)) {
     $page_title = "Rental Platform";
 }
@@ -23,7 +21,7 @@ if (!isset($page_title)) {
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/app.js" defer></script>
 </head>
-<body>
+<body data-logged-in="<?php echo isset($_SESSION['user_id']) ? '1' : '0'; ?>">
 
 <header>
     <?php require "navbar.php"; ?>

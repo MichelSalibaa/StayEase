@@ -31,7 +31,7 @@ $result = $conn->query($sql);
         <p class="location"><?php echo $row['city']; ?> · <?php echo $row['type']; ?></p>
         <p class="price">$<?php echo $row['price']; ?> / night</p>
 
-        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">Book now</a>
+        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">View</a>
     </div>
 <?php endwhile; ?>
 </div>

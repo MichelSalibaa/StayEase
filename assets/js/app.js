@@ -82,6 +82,21 @@ document.addEventListener("DOMContentLoaded", function () {
         // initial text
         updateLabel();
     });
+
+        /* -----------------------------------
+    4) BLOCK BOOKING WHEN LOGGED OUT
+    ----------------------------------- */
+    const isLoggedIn = document.body.getAttribute("data-logged-in") === "1";
+
+    document.querySelectorAll("a.book-btn").forEach(btn => {
+        btn.addEventListener("click", function (e) {
+            if (!isLoggedIn) {
+                e.preventDefault();
+                alert("You must log in to book a property!");
+            }
+        });
+    });
+
 });
 
 document.querySelectorAll(".filter-pill").forEach(pill => {
@@ -92,30 +107,92 @@ document.querySelectorAll(".filter-pill").forEach(pill => {
         pill.classList.toggle("active");
     });
 });
-
 document.addEventListener("DOMContentLoaded", function () {
 
     // Booking popup
     const openBtn = document.getElementById("openBookingPopup");
     const closeBtn = document.getElementById("closeBookingPopup");
-    const modal = document.getElementById("bookingModal");
+    const modal   = document.getElementById("bookingModal");
 
-    if (openBtn) {
+    if (openBtn && modal) {
         openBtn.addEventListener("click", () => {
             modal.style.display = "flex";
         });
     }
 
-    if (closeBtn) {
+    if (closeBtn && modal) {
         closeBtn.addEventListener("click", () => {
             modal.style.display = "none";
         });
     }
 
     window.addEventListener("click", (e) => {
-        if (e.target === modal) modal.style.display = "none";
+        if (modal && e.target === modal) modal.style.display = "none";
     });
 
+    // ===========================
+    //  DATE VALIDATION + BOOKINGS
+    // ===========================
+    const bookingForm = document.querySelector("#bookingModal form");
+    const errorBox    = document.getElementById("bookingError");
+
+    function overlapsBooked(checkIn, checkOut) {
+        if (!Array.isArray(window.bookedRanges)) return false;
+
+        const start = new Date(checkIn);
+        const end   = new Date(checkOut);
+
+        return window.bookedRanges.some(range => {
+            const rStart = new Date(range.start);
+            const rEnd   = new Date(range.end);
+
+            return !(end <= rStart || start >= rEnd);
+        });
+    }
+
+    if (bookingForm && errorBox) {
+        bookingForm.addEventListener("submit", function (e) {
+            const checkInEl  = document.getElementById("checkIn");
+            const checkOutEl = document.getElementById("checkOut");
+
+            const checkIn  = checkInEl.value;
+            const checkOut = checkOutEl.value;
+
+            if (checkOut <= checkIn) {
+                e.preventDefault();
+                errorBox.textContent = "Check-out date must be after check-in date.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if (overlapsBooked(checkIn, checkOut)) {
+                e.preventDefault();
+                errorBox.textContent = "These dates are already booked. Choose different dates.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            errorBox.style.display = "none";
+        });
+    }
+
+        // ===========================
+    //  CUSTOM FILE UPLOAD DISPLAY
+    // ===========================
+    const fileInput = document.getElementById("mainImageInput");
+    const fileNameText = document.getElementById("fileNameDisplay");
+
+    if (fileInput && fileNameText) {
+        fileInput.addEventListener("change", function () {
+            const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
+            fileNameText.textContent = fileName;
+        });
+    }
 });
+
+
+
+
+
 
 

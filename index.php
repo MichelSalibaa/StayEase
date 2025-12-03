@@ -9,11 +9,15 @@ require 'includes/db_connect.php';
 // ----------------------------
 $filter = isset($_GET['type']) ? $_GET['type'] : 'all';
 
-$whereSQL = "";
+// Always require approved status
+$whereSQL = "WHERE status = 'approved'";
 
 if ($filter !== 'all') {
-    $whereSQL = "WHERE type = '" . $conn->real_escape_string($filter) . "'";
+    $whereSQL .= " AND type = '" . $conn->real_escape_string($filter) . "'";
 }
+
+$query = "SELECT * FROM properties $whereSQL ORDER BY created_at DESC LIMIT 50";
+
 
 
 // ----------------------------
@@ -82,7 +86,7 @@ $result = $conn->query($query);
             $<?php echo number_format($row['price'], 2); ?> / night
         </p>
 
-        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">Book now</a>
+        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">View</a>
 
     </div>
 <?php endwhile; ?>

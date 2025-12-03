@@ -2,64 +2,105 @@
 session_start();
 require "includes/db_connect.php";
 
+// (optional while debugging – you can remove later)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+/**
+ * Helper: send user back to property page with an error message
+ */
+function back_with_error($property_id, $message) {
+    $_SESSION['booking_error'] = $message;
+    header("Location: property.php?id=" . $property_id . "&open_booking=1");
+    exit;
+}
+
+// 1) Must be logged in
 if (!isset($_SESSION['user_id'])) {
-    die("You must be logged in to book a property.");
+    $pid = isset($_POST['property_id']) ? (int)$_POST['property_id'] : 0;
+    back_with_error($pid, "You must be logged in to book a property.");
+}
+
+// 2) Must be POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: index.php");
+    exit;
 }
 
 $user_id     = $_SESSION['user_id'];
-$property_id = intval($_POST['property_id']);
-$start_date  = $_POST['check_in'];
-$end_date    = $_POST['check_out'];
+$property_id = isset($_POST['property_id']) ? (int)$_POST['property_id'] : 0;
+$start_date  = $_POST['check_in']  ?? '';
+$end_date    = $_POST['check_out'] ?? '';
 
-// validate dates
+if (!$property_id) {
+    header("Location: index.php");
+    exit;
+}
+
+// 3) Basic date validation
 if (empty($start_date) || empty($end_date)) {
-    die("Please select valid dates.");
+    back_with_error($property_id, "Please select valid dates.");
 }
 
 if ($start_date >= $end_date) {
-    die("End date must be after start date.");
+    back_with_error($property_id, "Check-out date must be after check-in date.");
 }
 
-// OPTIONAL: price calculation
-// get price per night
-$priceQuery = $conn->query("SELECT price FROM properties WHERE id = $property_id");
-$property   = $priceQuery->fetch_assoc();
-$pricePerNight = $property['price'];
+// 4) Check overlapping bookings
+$overlapStmt = $conn->prepare("
+    SELECT COUNT(*) AS cnt
+    FROM bookings
+    WHERE property_id = ?
+      AND status IN ('pending', 'confirmed')
+      AND NOT (end_date <= ? OR start_date >= ?)
+");
+$overlapStmt->bind_param("iss", $property_id, $start_date, $end_date);
+$overlapStmt->execute();
+$overlapResult = $overlapStmt->get_result()->fetch_assoc();
 
-// number of nights
+if ($overlapResult['cnt'] > 0) {
+    back_with_error($property_id, "These dates are already booked. Please choose other dates.");
+}
+
+// 5) Get price per night
+$priceStmt = $conn->prepare("SELECT price FROM properties WHERE id = ?");
+$priceStmt->bind_param("i", $property_id);
+$priceStmt->execute();
+$priceRow = $priceStmt->get_result()->fetch_assoc();
+
+if (!$priceRow) {
+    back_with_error($property_id, "Property not found.");
+}
+
+$pricePerNight = (float) $priceRow['price'];
+
+// 6) Calculate total price
 $nights = (strtotime($end_date) - strtotime($start_date)) / 86400;
+if ($nights <= 0) {
+    back_with_error($property_id, "Check-out date must be after check-in date.");
+}
+
 $total_price = $nights * $pricePerNight;
 
-// default booking status
+// 7) Insert booking
 $status = "pending";
 
-// insert into bookings table
 $stmt = $conn->prepare("
     INSERT INTO bookings (property_id, user_id, start_date, end_date, total_price, status)
     VALUES (?, ?, ?, ?, ?, ?)
 ");
-
-$stmt->bind_param("iissds", 
-    $property_id, 
-    $user_id, 
-    $start_date, 
-    $end_date, 
-    $total_price, 
+$stmt->bind_param(
+    "iissds",
+    $property_id,
+    $user_id,
+    $start_date,
+    $end_date,
+    $total_price,
     $status
 );
-
 $stmt->execute();
 
-echo "
-    <div style='padding:30px; text-align:center; font-family:Arial;'>
-        <h2>🎉 Thank you for your reservation!</h2>
-        <p>Your booking has been saved successfully.</p>
-        <p><strong>Total price:</strong> $$total_price</p>
-        <p><strong>Disclaimer:</strong> Payment will be made on check-in day at the property.</p>
-
-        <a href='my_bookings.php' 
-           style='display:inline-block;margin-top:20px;padding:12px 20px;background:#1e73be;color:#fff;border-radius:8px;text-decoration:none;'>
-           View My Bookings
-        </a>
-    </div>
-";
+// 8) Redirect to My Bookings with success message
+$_SESSION['booking_success'] = "Your booking has been created! Total price: $" . number_format($total_price, 2);
+header("Location: my_bookings.php");
+exit;
