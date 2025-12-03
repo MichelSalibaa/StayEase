@@ -1,8 +1,5 @@
 <?php
 require "includes/header.php";
-?>
-<?php
-
 require "includes/db_connect.php";
 
 $error_message = "";
@@ -19,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
-        // Email not found → show message on same page
+        // Email not found
         $error_message = "No account found for this email. Please register first.";
     } else {
         $user = $result->fetch_assoc();
@@ -28,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!password_verify($password, $user["password"])) {
             $error_message = "Incorrect password.";
         } else {
-            // Login OK
+            // Login successful
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_name"] = $user["name"];
 
@@ -39,19 +36,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-
 <link rel="stylesheet" href="assets/css/login.css">
 
 <div class="login-container">
     <div class="login-box">
-        
+
         <h1>Welcome Back</h1>
         <p class="subtitle">Log in to continue</p>
 
         <?php if (!empty($error_message)): ?>
             <div class="error-msg"><?php echo $error_message; ?></div>
         <?php endif; ?>
-
 
         <form action="login.php" method="POST">
 
@@ -64,11 +59,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <button type="submit" class="login-btn">Log In</button>
         </form>
 
+        <!-- GOOGLE LOGIN BUTTON -->
+        <button type="button" id="googleLoginBtn" class="google-btn">
+            <img src="assets/img/google-icon.png" alt=""> Sign in with Google
+        </button>
+
         <p class="signup-text">
             Don’t have an account?
             <a href="register.php">Create one</a>
         </p>
+
     </div>
 </div>
+
+<!-- Load ONLY our module here -->
+<script type="module" src="assets/js/google-login.js"></script>
 
 <?php require "includes/footer.php"; ?>
