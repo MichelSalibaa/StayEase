@@ -1,40 +1,33 @@
 <?php
-// No session_start() here if you already do it in header.php
 $page_title = "Browse Listings";
 
-require "includes/header.php";
-require "includes/db_connect.php";
+require __DIR__ . "/includes/header.php";
+require __DIR__ . "/includes/db_connect.php";
 
 /* ---------------------------
-   READ FILTERS FROM GET
+   READ FILTERS
 ----------------------------*/
 
-// type from the top filter bar (?type=apartment etc.)
-$type       = isset($_GET['type']) ? $_GET['type'] : 'all';
+$type  = isset($_GET['type']) ? $_GET['type'] : 'all';
+$city  = isset($_GET['city']) ? trim($_GET['city']) : '';
 
-// city search
-$city       = isset($_GET['city']) ? trim($_GET['city']) : '';
+$min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
+$max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : 0;
 
-// price range
-$min_price  = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
-$max_price  = isset($_GET['max_price']) ? (int)$_GET['max_price'] : 0;
+$wifi   = isset($_GET['wifi']) ? 1 : 0;
+$parking = isset($_GET['parking']) ? 1 : 0;
+$ac     = isset($_GET['ac']) ? 1 : 0;
+$pool   = isset($_GET['pool']) ? 1 : 0;
 
-// amenities (checkboxes)
-$wifi       = isset($_GET['wifi']) ? 1 : 0;
-$parking    = isset($_GET['parking']) ? 1 : 0;
-$ac         = isset($_GET['ac']) ? 1 : 0;
-$pool       = isset($_GET['pool']) ? 1 : 0;
-$guests        = isset($_GET['guests']) ? (int)$_GET['guests'] : 0;
+$guests = isset($_GET['guests']) ? (int)$_GET['guests'] : 0;
 
-$pet_friendly  = isset($_GET['pet_friendly']) ? 1 : 0;
-$heating       = isset($_GET['heating']) ? 1 : 0;
-$kitchen       = isset($_GET['kitchen']) ? 1 : 0;
-$tv            = isset($_GET['tv']) ? 1 : 0;
-
-
+$pet_friendly = isset($_GET['pet_friendly']) ? 1 : 0;
+$heating      = isset($_GET['heating']) ? 1 : 0;
+$kitchen      = isset($_GET['kitchen']) ? 1 : 0;
+$tv           = isset($_GET['tv']) ? 1 : 0;
 
 /* ---------------------------
-   BUILD DYNAMIC WHERE CLAUSE
+   BUILD WHERE QUERY
 ----------------------------*/
 
 $where = "WHERE status = 'approved'";
@@ -55,46 +48,21 @@ if ($max_price > 0 && $max_price >= $min_price) {
     $where .= " AND price <= " . $max_price;
 }
 
-if ($wifi) {
-    $where .= " AND has_wifi = 1";
-}
-
-if ($parking) {
-    $where .= " AND has_parking = 1";
-}
-
-if ($ac) {
-    $where .= " AND has_ac = 1";
-}
-
-if ($pool) {
-    $where .= " AND has_pool = 1";
-}
+if ($wifi)         $where .= " AND has_wifi = 1";
+if ($parking)      $where .= " AND has_parking = 1";
+if ($ac)           $where .= " AND has_ac = 1";
+if ($pool)         $where .= " AND has_pool = 1";
+if ($pet_friendly) $where .= " AND has_pet_friendly = 1";
+if ($heating)      $where .= " AND has_heating = 1";
+if ($kitchen)      $where .= " AND has_kitchen = 1";
+if ($tv)           $where .= " AND has_tv = 1";
 
 if ($guests > 0) {
     $where .= " AND max_guests = $guests";
 }
 
-if ($pet_friendly) {
-    $where .= " AND has_pet_friendly = 1";
-}
-
-if ($heating) {
-    $where .= " AND has_heating = 1";
-}
-
-if ($kitchen) {
-    $where .= " AND has_kitchen = 1";
-}
-
-if ($tv) {
-    $where .= " AND has_tv = 1";
-}
-
-
-
 /* ---------------------------
-   RUN QUERY
+   QUERY DATABASE
 ----------------------------*/
 
 $query  = "SELECT * FROM properties $where ORDER BY created_at DESC";
@@ -103,37 +71,31 @@ $result = $conn->query($query);
 
 <h1>Browse Properties</h1>
 
-<!-- ==========================
-     TOP TYPE FILTER BAR
-=========================== -->
+<!-- TOP FILTER BAR -->
 <div class="filter-bar">
 
-    <a href="listings.php?type=all"
+    <a href="/stayease/listings.php?type=all"
        class="filter-btn <?php echo ($type=='all' ? 'active' : ''); ?>">
-        ✨ All listings
+       ✨ All listings
     </a>
 
-    <a href="listings.php?type=guesthouse"
+    <a href="/stayease/listings.php?type=guesthouse"
        class="filter-btn <?php echo ($type=='guesthouse' ? 'active' : ''); ?>">
-        🏠 Guesthouses
+       🏠 Guesthouses
     </a>
 
-    <a href="listings.php?type=apartment"
+    <a href="/stayease/listings.php?type=apartment"
        class="filter-btn <?php echo ($type=='apartment' ? 'active' : ''); ?>">
-        🏢 Apartments
+       🏢 Apartments
     </a>
 
-    <a href="listings.php?type=camping"
+    <a href="/stayease/listings.php?type=camping"
        class="filter-btn <?php echo ($type=='camping' ? 'active' : ''); ?>">
-        🏕 Camping
+       🏕 Camping
     </a>
 </div>
 
-
-<!-- ==========================
-     ADVANCED FILTER PANEL
-=========================== -->
-
+<!-- ADVANCED FILTERS FORM -->
 <form method="GET" class="filters-form">
     <input type="hidden" name="type" value="<?php echo htmlspecialchars($type); ?>">
 
@@ -147,7 +109,7 @@ $result = $conn->query($query);
                    placeholder="e.g. Beirut">
         </div>
 
-        <!-- PRICE RANGE (UNCHANGED) -->
+        <!-- PRICE RANGE -->
         <div class="filter-section">
             <div class="filter-header"><h3>Price range</h3></div>
 
@@ -165,12 +127,11 @@ $result = $conn->query($query);
             </div>
         </div>
 
-        <!-- NUMBER OF GUESTS -->
+        <!-- GUESTS -->
         <div class="filter-section">
             <div class="filter-header"><h3>Guests</h3></div>
-
             <input type="number" min="1" max="20" name="guests" class="city-input"
-                   value="<?php echo isset($_GET['guests']) ? $_GET['guests'] : ''; ?>"
+                   value="<?php echo $guests ?: ''; ?>"
                    placeholder="Any number of guests">
         </div>
 
@@ -181,42 +142,42 @@ $result = $conn->query($query);
             <div class="filter-options">
 
                 <label class="filter-pill <?php if($wifi) echo 'active'; ?>">
-                    <input type="checkbox" name="wifi" value="1" <?php if($wifi) echo 'checked'; ?>>
+                    <input type="checkbox" name="wifi" <?php if($wifi) echo 'checked'; ?>>
                     📶 Wifi
                 </label>
 
                 <label class="filter-pill <?php if($ac) echo 'active'; ?>">
-                    <input type="checkbox" name="ac" value="1" <?php if($ac) echo 'checked'; ?>>
+                    <input type="checkbox" name="ac" <?php if($ac) echo 'checked'; ?>>
                     ❄ Air conditioning
                 </label>
 
                 <label class="filter-pill <?php if($parking) echo 'active'; ?>">
-                    <input type="checkbox" name="parking" value="1" <?php if($parking) echo 'checked'; ?>>
+                    <input type="checkbox" name="parking" <?php if($parking) echo 'checked'; ?>>
                     🅿 Parking
                 </label>
 
                 <label class="filter-pill <?php if($pool) echo 'active'; ?>">
-                    <input type="checkbox" name="pool" value="1" <?php if($pool) echo 'checked'; ?>>
+                    <input type="checkbox" name="pool" <?php if($pool) echo 'checked'; ?>>
                     🏊 Pool
                 </label>
 
                 <label class="filter-pill <?php if($pet_friendly) echo 'active'; ?>">
-                    <input type="checkbox" name="pet_friendly" value="1" <?php if($pet_friendly) echo 'checked'; ?>>
+                    <input type="checkbox" name="pet_friendly" <?php if($pet_friendly) echo 'checked'; ?>>
                     🐶 Pet friendly
                 </label>
 
                 <label class="filter-pill <?php if($heating) echo 'active'; ?>">
-                    <input type="checkbox" name="heating" value="1" <?php if($heating) echo 'checked'; ?>>
+                    <input type="checkbox" name="heating" <?php if($heating) echo 'checked'; ?>>
                     🔥 Heating
                 </label>
 
                 <label class="filter-pill <?php if($kitchen) echo 'active'; ?>">
-                    <input type="checkbox" name="kitchen" value="1" <?php if($kitchen) echo 'checked'; ?>>
+                    <input type="checkbox" name="kitchen" <?php if($kitchen) echo 'checked'; ?>>
                     🍳 Kitchen
                 </label>
 
                 <label class="filter-pill <?php if($tv) echo 'active'; ?>">
-                    <input type="checkbox" name="tv" value="1" <?php if($tv) echo 'checked'; ?>>
+                    <input type="checkbox" name="tv" <?php if($tv) echo 'checked'; ?>>
                     📺 TV
                 </label>
 
@@ -224,31 +185,30 @@ $result = $conn->query($query);
         </div>
 
         <div class="filter-actions">
-            <a href="listings.php" class="clear-btn">Clear all</a>
+            <a href="/stayease/listings.php" class="clear-btn">Clear all</a>
             <button type="submit" class="apply-btn">Show results</button>
         </div>
+
     </div>
 </form>
 
-<!-- ==========================
-     PROPERTY CARDS
-=========================== -->
+<!-- PROPERTY CARDS -->
 <div class="cards">
 
 <?php while ($row = $result->fetch_assoc()): ?>
     <div class="card">
 
         <div class="card-img-wrap">
-            <img src="<?php echo $row['main_image']; ?>" alt="Property Image">
+            <img src="/stayease/<?php echo $row['main_image']; ?>" alt="Property Image">
 
             <!-- FAVORITE HEART -->
             <div class="heart-btn" data-id="<?php echo $row['id']; ?>">
-                <?php 
+                <?php
                     if (isset($_SESSION['user_id'])) {
                         $u = $_SESSION['user_id'];
                         $p = $row['id'];
-                        $fav_check = $conn->query("SELECT id FROM favorites WHERE user_id=$u AND property_id=$p");
-                        echo ($fav_check->num_rows > 0) ? "♥" : "♡";
+                        $fav = $conn->query("SELECT id FROM favorites WHERE user_id=$u AND property_id=$p");
+                        echo ($fav->num_rows > 0) ? "♥" : "♡";
                     } else {
                         echo "♡";
                     }
@@ -256,10 +216,10 @@ $result = $conn->query($query);
             </div>
         </div>
 
-        <h3><?php echo $row['title']; ?></h3>
+        <h3><?php echo htmlspecialchars($row['title']); ?></h3>
 
         <p class="location">
-            <?php echo $row['city']; ?> · <?php echo ucfirst($row['type']); ?>
+            <?php echo htmlspecialchars($row['city']); ?> · <?php echo ucfirst($row['type']); ?>
         </p>
 
         <p class="details">
@@ -270,11 +230,13 @@ $result = $conn->query($query);
             $<?php echo number_format($row['price'], 2); ?> / night
         </p>
 
-        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">Book now</a>
+        <a class="book-btn" href="/stayease/property.php?id=<?php echo $row['id']; ?>">
+            Book now
+        </a>
 
     </div>
 <?php endwhile; ?>
 
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/includes/footer.php"; ?>

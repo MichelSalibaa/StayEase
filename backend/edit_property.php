@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php";
-require "includes/db_connect.php";
+require __DIR__ . "/../includes/auth_check.php";
+require __DIR__ . "/../includes/db_connect.php";
 
 // -----------------------------
 // 1) CHECK ID + LOAD PROPERTY
@@ -9,8 +9,8 @@ if (!isset($_GET['id'])) {
     die("Property not found.");
 }
 
-$property_id = intval($_GET['id']);
-$owner_id    = $_SESSION['user_id'];
+$property_id = (int) $_GET['id'];
+$owner_id    = (int) $_SESSION['user_id'];
 
 $stmt = $conn->prepare("
     SELECT * FROM properties
@@ -53,6 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // image upload (optional)
     $newImagePath = $property['main_image']; // default: keep old
+
     if (isset($_FILES["main_image"]) && $_FILES["main_image"]["error"] !== UPLOAD_ERR_NO_FILE) {
         $file = $_FILES["main_image"];
 
@@ -70,7 +71,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (empty($errors)) {
-            $uploadDir = "assets/uploads/";
+            // ✅ correct upload dir from backend/
+            $uploadDir = __DIR__ . "/../assets/uploads/";
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -79,18 +81,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $newName  = "property_" . time() . "_" . mt_rand(1000, 9999) . "." . $ext;
             $destPath = $uploadDir . $newName;
 
+            // relative path for DB (what front-end uses)
+            $dbImagePath = "assets/uploads/" . $newName;
+
             if (!move_uploaded_file($file["tmp_name"], $destPath)) {
                 $errors[] = "Could not save uploaded image. Please try again.";
             } else {
-                $newImagePath = $destPath;
+                $newImagePath = $dbImagePath;
             }
         }
     }
 
     // if no errors → update
     if (empty($errors)) {
-        $price_val      = (float)$price;
-        $max_guests_val = ($max_guests === "") ? null : (int)$max_guests;
+        $price_val      = (float) $price;
+        $max_guests_val = ($max_guests === "") ? null : (int) $max_guests;
 
         $update = $conn->prepare("
             UPDATE properties
@@ -116,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         echo "<script>
             alert('Your property has been updated successfully!');
-            window.location.href = 'dashboard.php';
+            window.location.href = '../dashboard.php';
         </script>";
         exit;
     } else {
@@ -128,13 +133,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $property['address']     = $address;
         $property['type']        = $type;
         $property['max_guests']  = $max_guests;
-        // main_image stays $newImagePath (either old or new)
-        $property['main_image']  = $newImagePath;
+        $property['main_image']  = $newImagePath; // old or new
     }
 }
 
 $page_title = "Edit Property";
-require "includes/header.php";
+require __DIR__ . "/../includes/header.php";
 ?>
 
 <div class="add-property-container">
@@ -162,8 +166,8 @@ require "includes/header.php";
             <!-- Description -->
             <label>Description</label>
             <textarea name="description" rows="4"
-                      placeholder="Describe your property, neighborhood, and any special details."><?php 
-                echo htmlspecialchars($property['description']); 
+                      placeholder="Describe your property, neighborhood, and any special details."><?php
+                echo htmlspecialchars($property['description']);
             ?></textarea>
 
             <div class="form-row">
@@ -193,11 +197,11 @@ require "includes/header.php";
                         <?php
                         $currentType = $property['type'];
                         $types = [
-                            ''            => 'Select type',
-                            'apartment'   => 'Apartment',
-                            'guesthouse'  => 'Guesthouse',
-                            'camping'     => 'Camping',
-                            'house'       => 'House',
+                            ''           => 'Select type',
+                            'apartment'  => 'Apartment',
+                            'guesthouse' => 'Guesthouse',
+                            'camping'    => 'Camping',
+                            'house'      => 'House',
                         ];
                         foreach ($types as $value => $label) {
                             $selected = ($currentType === $value) ? 'selected' : '';
@@ -213,7 +217,7 @@ require "includes/header.php";
             <input type="text" name="address"
                    value="<?php echo htmlspecialchars($property['address']); ?>">
 
-            <!-- Current image preview -->
+            <!-- Current image -->
             <label>Current Image</label>
             <div style="margin-bottom: 10px;">
                 <img src="<?php echo htmlspecialchars($property['main_image']); ?>"
@@ -238,4 +242,4 @@ require "includes/header.php";
     </div>
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/../includes/footer.php"; ?>

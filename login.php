@@ -1,6 +1,6 @@
 <?php
-require "includes/header.php";
-require "includes/db_connect.php";
+require __DIR__ . "/includes/header.php";
+require __DIR__ . "/includes/db_connect.php";
 
 $error_message = "";
 
@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-<link rel="stylesheet" href="assets/css/login.css">
+<link rel="stylesheet" href="/stayease/assets/css/login.css">
 
 <div class="login-container">
     <div class="login-box">
@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <!-- GOOGLE LOGIN BUTTON -->
         <button type="button" id="googleLoginBtn" class="google-btn">
-            <img src="assets/img/google-icon.png" alt=""> Sign in with Google
+            <img src="/stayease/assets/img/google-icon.png" alt=""> Sign in with Google
         </button>
 
         <p class="signup-text">
@@ -73,6 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </div>
 
 <!-- Load ONLY our module here -->
-<script type="module" src="assets/js/google-login.js"></script>
+<script type="module" src="/stayease/assets/js/google-login.js"></script>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/includes/footer.php"; ?>

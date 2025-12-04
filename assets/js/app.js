@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!id) return;
 
-            fetch("toggle_favorite.php?id=" + id)
+            fetch("backend/toggle_favorite.php?id=" + id)
                 .then(res => res.text())
                 .then(data => {
                     if (data === "ADDED") {

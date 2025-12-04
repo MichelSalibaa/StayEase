@@ -1,8 +1,9 @@
 <?php
 $page_title = "Home";
-require 'includes/header.php';
-require 'includes/db_connect.php';
 
+// Correct include paths
+require __DIR__ . '/includes/header.php';
+require __DIR__ . '/includes/db_connect.php';
 
 // ----------------------------
 // 1) READ FILTER FROM URL
@@ -13,19 +14,15 @@ $filter = isset($_GET['type']) ? $_GET['type'] : 'all';
 $whereSQL = "WHERE status = 'approved'";
 
 if ($filter !== 'all') {
-    $whereSQL .= " AND type = '" . $conn->real_escape_string($filter) . "'";
+    $filterSafe = $conn->real_escape_string($filter);
+    $whereSQL .= " AND type = '$filterSafe'";
 }
 
-$query = "SELECT * FROM properties $whereSQL ORDER BY created_at DESC LIMIT 50";
-
-
-
 // ----------------------------
-// 2) BUILD THE CORRECT SQL QUERY
+// 2) BUILD QUERY
 // ----------------------------
 $query = "SELECT * FROM properties $whereSQL ORDER BY created_at DESC LIMIT 50";
 $result = $conn->query($query);
-
 ?>
 
 <h1>Latest Listings</h1>
@@ -34,18 +31,26 @@ $result = $conn->query($query);
      FILTER BUTTONS
 ---------------------------- -->
 <div class="filter-bar">
+    <a href="/stayease/index.php?type=all" 
+       class="filter-btn <?php echo ($filter=='all' ? 'active' : ''); ?>">
+       ✨ All listings
+    </a>
 
-    <a href="index.php?type=all" class="filter-btn <?php echo ($filter=='all' ? 'active' : ''); ?>">✨ All listings</a>
+    <a href="/stayease/index.php?type=guesthouse" 
+       class="filter-btn <?php echo ($filter=='guesthouse' ? 'active' : ''); ?>">
+       🏠 Guesthouses
+    </a>
 
-    <a href="index.php?type=guesthouse" class="filter-btn <?php echo ($filter=='guesthouse' ? 'active' : ''); ?>">🏠 Guesthouses</a>
+    <a href="/stayease/index.php?type=apartment" 
+       class="filter-btn <?php echo ($filter=='apartment' ? 'active' : ''); ?>">
+       🏢 Apartments
+    </a>
 
-    <a href="index.php?type=apartment" class="filter-btn <?php echo ($filter=='apartment' ? 'active' : ''); ?>">🏢 Apartments</a>
-
-    <a href="index.php?type=camping" class="filter-btn <?php echo ($filter=='camping' ? 'active' : ''); ?>">🏕 Camping</a>
-
+    <a href="/stayease/index.php?type=camping" 
+       class="filter-btn <?php echo ($filter=='camping' ? 'active' : ''); ?>">
+       🏕 Camping
+    </a>
 </div>
-
-
 
 <!-- ----------------------------
      PROPERTY CARDS
@@ -55,11 +60,11 @@ $result = $conn->query($query);
     <div class="card">
 
         <div class="card-img-wrap">
-            <img src="<?php echo $row['main_image']; ?>" alt="Property Image">
+            <img src="/stayease/<?php echo $row['main_image']; ?>" alt="Property Image">
 
             <!-- heart overlay icon -->
             <div class="heart-btn" data-id="<?php echo $row['id']; ?>">
-                <?php 
+                <?php
                     if (isset($_SESSION['user_id'])) {
                         $u = $_SESSION['user_id'];
                         $p = $row['id'];
@@ -72,24 +77,29 @@ $result = $conn->query($query);
             </div>
         </div>
 
-        <h3><?php echo $row['title']; ?></h3>
+        <h3><?php echo htmlspecialchars($row['title']); ?></h3>
 
         <p class="location">
-            <?php echo $row['city']; ?> · <?php echo $row['type']; ?>
+            <?php echo htmlspecialchars($row['city']); ?> · 
+            <?php echo htmlspecialchars($row['type']); ?>
         </p>
 
         <p class="details">
-            <?php echo $row['max_guests']; ?> guests · <?php echo $row['type']; ?>
+            <?php echo htmlspecialchars($row['max_guests']); ?> guests · 
+            <?php echo htmlspecialchars($row['type']); ?>
         </p>
 
         <p class="price">
             $<?php echo number_format($row['price'], 2); ?> / night
         </p>
 
-        <a class="book-btn" href="property.php?id=<?php echo $row['id']; ?>">View</a>
+        <a class="book-btn" 
+           href="/stayease/property.php?id=<?php echo $row['id']; ?>">
+           View
+        </a>
 
     </div>
 <?php endwhile; ?>
 </div>
 
-<?php require 'includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; ?>

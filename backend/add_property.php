@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php";
-require "includes/db_connect.php";
+require __DIR__ . "/../includes/auth_check.php";
+require __DIR__ . "/../includes/db_connect.php";
 
 $errors = [];
 
@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($errors)) {
 
         // 1) Move uploaded image
-        $uploadDir = "assets/uploads/";
+        $uploadDir = __DIR__ . "/../assets/uploads/";
 
         if (!is_dir($uploadDir)) {
             // create directory if it doesn't exist
@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Popup + redirect
             echo "<script>
                 alert('Thank you! The StayEase community is reviewing your property.');
-                window.location.href = 'dashboard.php';
+                window.location.href = '../dashboard.php';
             </script>";
             exit();
         }
@@ -107,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $page_title = "Add Property";
-require "includes/header.php";
+require __DIR__ . "/../includes/header.php";
 ?>
 
 <div class="add-property-container">
@@ -205,4 +205,4 @@ require "includes/header.php";
     </div>
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/../includes/footer.php"; ?>

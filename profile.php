@@ -11,15 +11,17 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 // Safe defaults if NULL
-$name  = htmlspecialchars($user['name'] ?? '');
-$email = htmlspecialchars($user['email'] ?? '');
-$phone = htmlspecialchars($user['phone'] ?? '');
-$bio   = htmlspecialchars($user['bio'] ?? '');
+$name    = htmlspecialchars($user['name'] ?? '');
+$email   = htmlspecialchars($user['email'] ?? '');
+$phone   = htmlspecialchars($user['phone'] ?? '');
+$bio     = htmlspecialchars($user['bio'] ?? '');
 $created = date("F Y", strtotime($user['created_at']));
 
+// Profile image fallback
 $profile_image = $user['profile_image'] ?? "assets/img/default_avatar.png";
 
-include "includes/header.php";
+// Correct include path
+require "includes/header.php";
 ?>
 
 <div class="profile-container">
@@ -38,7 +40,6 @@ include "includes/header.php";
         </div>
     </div>
 
-
     <!-- RIGHT SIDE FORMS -->
     <div class="profile-forms">
 
@@ -46,7 +47,8 @@ include "includes/header.php";
         <div class="profile-section">
             <h3>Update Profile</h3>
 
-            <form action="update_profile.php" method="POST">
+            <!-- FIXED PATH: backend/update_profile.php -->
+            <form action="backend/update_profile.php" method="POST">
 
                 <label>Name</label>
                 <input type="text" name="name" value="<?php echo $name; ?>" required>
@@ -68,7 +70,8 @@ include "includes/header.php";
         <div class="profile-section">
             <h3>Change Password</h3>
 
-            <form action="update_password.php" method="POST">
+            <!-- FIXED PATH: backend/update_password.php -->
+            <form action="backend/update_password.php" method="POST">
 
                 <label>Current Password</label>
                 <input type="password" name="current_password" required>
@@ -87,4 +90,4 @@ include "includes/header.php";
 
 </div>
 
-<?php include "includes/footer.php"; ?>
+<?php require "includes/footer.php"; ?>

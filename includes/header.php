@@ -3,6 +3,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 // Default page title if not set
 if (!isset($page_title)) {
     $page_title = "Rental Platform";
@@ -17,14 +18,18 @@ if (!isset($page_title)) {
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title><?php echo htmlspecialchars($page_title); ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="assets/js/app.js" defer></script>
+
+    <!-- CORRECT RELATIVE PATHS -->
+    <link rel="stylesheet" href="/stayease/assets/css/style.css">
+    <script src="/stayease/assets/js/app.js" defer></script>
 </head>
+
 <body data-logged-in="<?php echo isset($_SESSION['user_id']) ? '1' : '0'; ?>">
 
 <header>
-    <?php require "navbar.php"; ?>
+    <?php require __DIR__ . "/navbar.php"; ?>
 </header>
 
 <main>

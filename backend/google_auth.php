@@ -1,6 +1,6 @@
 <?php
 session_start();
-require "includes/db_connect.php";
+require __DIR__ . "/../includes/db_connect.php";
 
 if (!isset($_POST['id_token'])) {
     echo "MISSING_TOKEN";

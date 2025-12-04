@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php";
-require "includes/db_connect.php";
+require __DIR__ . "/includes/auth_check.php";
+require __DIR__ . "/includes/db_connect.php";
 
 $user_id = $_SESSION['user_id'];
 
@@ -10,12 +10,10 @@ $user_id = $_SESSION['user_id'];
 if (isset($_GET['cancel_id'])) {
     $cancel_id = (int) $_GET['cancel_id'];
 
-    // Only allow deleting bookings that belong to this user
     $stmt = $conn->prepare("DELETE FROM bookings WHERE id = ? AND user_id = ?");
     $stmt->bind_param("ii", $cancel_id, $user_id);
     $stmt->execute();
 
-    // Redirect back to the same page without the parameter
     header("Location: my_bookings.php");
     exit;
 }
@@ -24,9 +22,9 @@ if (isset($_GET['cancel_id'])) {
    2) FETCH USER BOOKINGS
 ----------------------------------- */
 $result = $conn->query("
-    SELECT b.*, 
-           p.title, 
-           p.city, 
+    SELECT b.*,
+           p.title,
+           p.city,
            p.main_image,
            p.price
     FROM bookings b
@@ -36,7 +34,7 @@ $result = $conn->query("
 ");
 
 $page_title = "My Bookings";
-require "includes/header.php";
+require __DIR__ . "/includes/header.php";
 ?>
 
 <h1>My Bookings</h1>
@@ -45,7 +43,7 @@ require "includes/header.php";
 
 <?php while ($row = $result->fetch_assoc()): ?>
     <div class="card booking-card">
-        <img src="<?php echo $row['main_image']; ?>" 
+        <img src="<?php echo $row['main_image']; ?>"
              style="width:100%; height:200px; object-fit:cover; border-radius:12px;">
 
         <h3><?php echo $row['title']; ?></h3>
@@ -56,7 +54,6 @@ require "includes/header.php";
         <p><strong>Total price:</strong> $<?php echo $row['total_price']; ?></p>
         <p><strong>Status:</strong> <?php echo ucfirst($row['status']); ?></p>
 
-        <!-- Cancel button: same page, just adds ?cancel_id=... -->
         <a href="my_bookings.php?cancel_id=<?php echo $row['id']; ?>"
            class="cancel-booking-btn"
            onclick="return confirm('Are you sure you want to cancel this booking?');">
@@ -67,4 +64,4 @@ require "includes/header.php";
 
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/includes/footer.php"; ?>

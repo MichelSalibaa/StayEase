@@ -12,7 +12,7 @@ $property_id = intval($_GET['id']);
 // FETCH PROPERTY
 // -----------------------------
 $stmt = $conn->prepare("
-    SELECT p.*, u.name AS owner_name 
+    SELECT p.*, u.name AS owner_name
     FROM properties p
     LEFT JOIN users u ON p.owner_id = u.id
     WHERE p.id = ?
@@ -68,9 +68,8 @@ $page_title = $property['title'];
 require "includes/header.php";
 ?>
 
-<!-- Expose booked ranges & error to JS -->
 <script>
-    // make them available to app.js
+    // Expose booked ranges to app.js
     window.bookedRanges = <?php echo json_encode($booked_ranges); ?>;
 </script>
 
@@ -92,7 +91,7 @@ require "includes/header.php";
         </div>
 
         <!-- Favorite Button -->
-        <div class="property-heart" 
+        <div class="property-heart"
              data-id="<?php echo $property_id; ?>"
              data-favorited="<?php echo isset($_SESSION['user_id']) ? 'ok' : 'no'; ?>">
             ♡
@@ -108,7 +107,7 @@ require "includes/header.php";
 
     <hr class="divider">
 
-    <!-- DESCRIPTION SECTION -->
+    <!-- DESCRIPTION -->
     <div class="section">
         <h2>About this place</h2>
         <p><?php echo nl2br($property['description']); ?></p>
@@ -134,29 +133,29 @@ require "includes/header.php";
 
     <hr class="divider">
 
-    <!-- BOOKING BUTTON -->
+    <!-- BOOKING BOX -->
     <div class="booking-box">
         <h2>$<?php echo number_format($property['price'], 2); ?> <span>/ night</span></h2>
 
-        <!-- OPEN POPUP BUTTON -->
         <button class="book-now-btn" id="openBookingPopup">
             Book Now
         </button>
     </div>
 </div>
 
-<!-- BOOKING POPUP (MODAL) -->
+<!-- BOOKING POPUP -->
 <div id="bookingModal" class="booking-modal">
     <div class="booking-content">
         <h2>Book This Property</h2>
 
-        <!-- ERROR MESSAGE (shown in red) -->
+        <!-- ERROR MESSAGE -->
         <div id="bookingError"
              style="color: red; margin-bottom: 10px; <?php echo empty($booking_error) ? 'display:none;' : 'display:block;'; ?>">
             <?php echo htmlspecialchars($booking_error); ?>
         </div>
 
-        <form action="book_property.php" method="POST">
+        <!-- IMPORTANT: FIXED ACTION PATH -->
+        <form action="backend/book_property.php" method="POST">
             <input type="hidden" name="property_id" value="<?php echo $property_id; ?>">
 
             <label>Check-in Date</label>
@@ -178,12 +177,9 @@ require "includes/header.php";
 
 <?php if ($open_booking): ?>
 <script>
-    // if coming back from book_property.php with an error,
-    // open the modal automatically
-    document.addEventListener("DOMContentLoaded", function () {
-        const modal = document.getElementById("bookingModal");
-        if (modal) modal.style.display = "flex";
-    });
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("bookingModal").style.display = "flex";
+});
 </script>
 <?php endif; ?>
 

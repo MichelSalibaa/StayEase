@@ -1,15 +1,15 @@
 <?php
 session_start();
-require "includes/db_connect.php";  // we need DB here now
+require "includes/db_connect.php";  // correct path
 
 $errors = [];
 
 // Handle form submit
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $name             = trim($_POST["name"]);
-    $email            = trim($_POST["email"]);
-    $password         = $_POST["password"];
-    $confirm_password = $_POST["confirm_password"];
+    $name              = trim($_POST["name"]);
+    $email             = trim($_POST["email"]);
+    $password          = $_POST["password"];
+    $confirm_password  = $_POST["confirm_password"];
 
     // Basic required fields check
     if ($name === "" || $email === "" || $password === "" || $confirm_password === "") {
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errors[] = "Passwords do not match.";
     }
 
-    // Check if email already exists (optional but useful)
+    // Check if email already exists
     if ($email !== "") {
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
@@ -57,9 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-// Page title (optional)
+// Page title
 $page_title = "Register";
-require "includes/header.php";
+require "includes/header.php";  // correct path
 ?>
 
 <div class="register-container">
@@ -109,4 +109,4 @@ require "includes/header.php";
     </div>
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require "includes/footer.php"; ?>  <!-- correct path -->

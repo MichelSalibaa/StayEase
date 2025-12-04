@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php"; // session + logged-in check
-require "includes/db_connect.php";
+require __DIR__ . "/../includes/auth_check.php"; // session + logged-in check
+require __DIR__ . "/../includes/db_connect.php";
 
 $user_id = $_SESSION['user_id'];
 
@@ -17,7 +17,7 @@ if (empty($current_password) || empty($new_password) || empty($confirm_password)
 if ($new_password !== $confirm_password) {
     echo "<script>
             alert('New passwords do not match.');
-            window.location.href = 'profile.php';
+            window.location.href = '../profile.php';
           </script>";
     exit;
 }
@@ -39,7 +39,7 @@ $stored_hash = $user['password'];
 if (!password_verify($current_password, $stored_hash)) {
     echo "<script>
             alert('Incorrect current password.');
-            window.location.href = 'profile.php';
+            window.location.href = '../profile.php';
           </script>";
     exit;
 }
@@ -54,7 +54,7 @@ $update->bind_param("si", $new_hash, $user_id);
 if ($update->execute()) {
     echo "<script>
             alert('Password updated successfully!');
-            window.location.href = 'profile.php';
+            window.location.href = '../profile.php';
           </script>";
 } 
 else {

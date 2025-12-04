@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php"; // handles session + login check
-require "includes/db_connect.php";
+require __DIR__ . "/includes/auth_check.php";
+require __DIR__ . "/includes/db_connect.php";
 
 $user_id = $_SESSION["user_id"];
 
@@ -20,9 +20,8 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $total_favorites = $stmt->get_result()->fetch_assoc()["total"];
 
-// Total bookings (if you have a bookings table)
-$booking_count = 0; // temporary (we can implement real bookings later)
-
+// Temporary bookings count
+$booking_count = 0;
 
 /* -------------------------
    FETCH USER LISTINGS
@@ -36,7 +35,7 @@ $listings = $stmt->get_result();
    PAGE HEADER
 -------------------------- */
 $page_title = "Dashboard";
-require "includes/header.php";
+require __DIR__ . "/includes/header.php";
 ?>
 
 <div class="dashboard-container">
@@ -61,8 +60,8 @@ require "includes/header.php";
         </div>
     </div>
 
-    <!-- ADD PROPERTY BUTTON -->
-    <a class="add-listing-btn" href="add_property.php">+ Add New Listing</a>
+    <!-- ADD NEW LISTING BUTTON -->
+    <a class="add-listing-btn" href="/stayease/backend/add_property.php">+ Add New Listing</a>
 
     <!-- LISTINGS TABLE -->
     <div class="dashboard-section">
@@ -82,20 +81,25 @@ require "includes/header.php";
             <?php while ($row = $listings->fetch_assoc()): ?>
             <tr>
                 <td>
-                    <img src="<?php echo $row['main_image']; ?>" alt="">
+                    <img src="/stayease/<?php echo $row['main_image']; ?>" alt="">
                 </td>
 
-                <td><?php echo $row['title']; ?></td>
+                <td><?php echo htmlspecialchars($row['title']); ?></td>
 
-                <td><?php echo $row['city']; ?></td>
+                <td><?php echo htmlspecialchars($row['city']); ?></td>
 
                 <td>$<?php echo number_format($row['price'], 2); ?></td>
 
                 <td>
-                    <a class="table-btn view-btn" href="property.php?id=<?php echo $row['id']; ?>">View</a>
-                    <a class="table-btn edit-btn" href="edit_property.php?id=<?php echo $row['id']; ?>">Edit</a>
-                    <a class="table-btn delete-btn" href="delete_property.php?id=<?php echo $row['id']; ?>"
-                        onclick="return confirm('Are you sure you want to delete this property?');">
+                    <a class="table-btn view-btn" 
+                       href="/stayease/property.php?id=<?php echo $row['id']; ?>">View</a>
+
+                    <a class="table-btn edit-btn" 
+                       href="/stayease/backend/edit_property.php?id=<?php echo $row['id']; ?>">Edit</a>
+
+                    <a class="table-btn delete-btn" 
+                       href="/stayease/backend/delete_property.php?id=<?php echo $row['id']; ?>"
+                       onclick="return confirm('Are you sure you want to delete this property?');">
                         Delete
                     </a>
                 </td>
@@ -114,4 +118,4 @@ require "includes/header.php";
 
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require __DIR__ . "/includes/footer.php"; ?>

@@ -1,6 +1,6 @@
 <?php
-require "includes/auth_check.php";   // ensures user is logged in + starts session
-require "includes/db_connect.php";
+require __DIR__ . "/../includes/auth_check.php";   // ensures user is logged in + starts session
+require __DIR__ . "/../includes/db_connect.php";
 
 $user_id = $_SESSION['user_id'];
 
@@ -32,7 +32,7 @@ if ($stmt->execute()) {
     echo "
         <script>
         alert('Your profile has been updated successfully!');
-        window.location.href = 'profile.php';
+        window.location.href = '../profile.php';
         </script>
     ";
 } else {
